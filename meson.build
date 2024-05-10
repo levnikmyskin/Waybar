@@ -1,6 +1,6 @@
 project(
     'waybar', 'cpp', 'c',
-    version: '0.10.0',
+    version: '0.10.3',
     license: 'MIT',
     meson_version: '>= 0.59.0',
     default_options : [
@@ -335,10 +335,7 @@ endif
 
 if (upower_glib.found() and not get_option('logind').disabled())
     add_project_arguments('-DHAVE_UPOWER', language: 'cpp')
-    src_files += files(
-        'src/modules/upower/upower.cpp',
-        'src/modules/upower/upower_tooltip.cpp',
-    )
+    src_files += files('src/modules/upower.cpp')
     man_files += files('man/waybar-upower.5.scd')
 endif
 
@@ -534,6 +531,14 @@ if scdoc.found()
     man_files += configure_file(
         input: 'man/waybar.5.scd.in',
         output: 'waybar.5.scd',
+        configuration: {
+            'sysconfdir': prefix / sysconfdir
+        }
+    )
+
+    man_files += configure_file(
+        input: 'man/waybar-styles.5.scd.in',
+        output: 'waybar-styles.5.scd',
         configuration: {
             'sysconfdir': prefix / sysconfdir
         }
