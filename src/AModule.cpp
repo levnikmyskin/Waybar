@@ -8,8 +8,8 @@ namespace waybar {
 
 AModule::AModule(const Json::Value& config, const std::string& name, const std::string& id,
                  bool enable_click, bool enable_scroll)
-    : name_(std::move(name)),
-      config_(std::move(config)),
+    : name_(name),
+      config_(config),
       isTooltip{config_["tooltip"].isBool() ? config_["tooltip"].asBool() : true},
       distance_scrolled_y_(0.0),
       distance_scrolled_x_(0.0) {
@@ -18,12 +18,12 @@ AModule::AModule(const Json::Value& config, const std::string& name, const std::
 
   for (Json::Value::const_iterator it = actions.begin(); it != actions.end(); ++it) {
     if (it.key().isString() && it->isString())
-      if (eventActionMap_.count(it.key().asString()) == 0) {
+      if (!eventActionMap_.contains(it.key().asString())) {
         eventActionMap_.insert({it.key().asString(), it->asString()});
         enable_click = true;
         enable_scroll = true;
       } else
-        spdlog::warn("Dublicate action is ignored: {0}", it.key().asString());
+        spdlog::warn("Duplicate action is ignored: {0}", it.key().asString());
     else
       spdlog::warn("Wrong actions section configuration. See config by index: {}", it.index());
   }
@@ -90,7 +90,7 @@ auto AModule::doAction(const std::string& name) -> void {
   }
 }
 
-void AModule::setCursor(Gdk::CursorType c) {
+void AModule::setCursor(Gdk::CursorType const& c) {
   auto cursor = Gdk::Cursor::create(c);
   auto gdk_window = event_box_.get_window();
   gdk_window->set_cursor(cursor);
@@ -133,6 +133,16 @@ bool AModule::handleUserEvent(GdkEventButton* const& e) {
 
     format = rec->second;
   }
+
+  // Check that a menu has been configured
+  if (config_["menu"].isString()) {
+    // Check if the event is the one specified for the "menu" option
+    if (rec->second == config_["menu"].asString()) {
+      // Popup the menu
+      gtk_widget_show_all(GTK_WIDGET(menu_));
+      gtk_menu_popup_at_pointer(GTK_MENU(menu_), reinterpret_cast<GdkEvent*>(e));
+    }
+  }
   // Second call user scripts
   if (!format.empty()) {
     if (config_[format].isString())
@@ -154,7 +164,7 @@ AModule::SCROLL_DIR AModule::getScrollDir(GdkEventScroll* e) {
 
   // ignore reverse-scrolling if event comes from a mouse wheel
   GdkDevice* device = gdk_event_get_source_device((GdkEvent*)e);
-  if (device != NULL && gdk_device_get_source(device) == GDK_SOURCE_MOUSE) {
+  if (device != nullptr && gdk_device_get_source(device) == GDK_SOURCE_MOUSE) {
     reverse = reverse_mouse;
   }
 
@@ -232,7 +242,7 @@ bool AModule::handleScroll(GdkEventScroll* e) {
   return true;
 }
 
-bool AModule::tooltipEnabled() { return isTooltip; }
+bool AModule::tooltipEnabled() const { return isTooltip; }
 
 AModule::operator Gtk::Widget&() { return event_box_; }
 
