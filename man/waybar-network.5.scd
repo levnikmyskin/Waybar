@@ -58,7 +58,7 @@ Addressed by *network*
 
 *rotate*: ++
 	typeof: integer ++
-	Positive value to rotate the text label.
+	Positive value to rotate the text label (in 90 degree increments).
 
 *max-length*: ++
 	typeof: integer ++
@@ -155,6 +155,8 @@ Addressed by *network*
 *{cidr}*: The subnetmask corresponding to the IP in CIDR notation.
 
 *{essid}*: Name (SSID) of the wireless network.
+
+*{bssid}*: MAC address (BSSID) of the wireless access point.
 
 *{signalStrength}*: Signal strength of the wireless network.
 

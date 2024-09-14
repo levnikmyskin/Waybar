@@ -163,15 +163,16 @@ auto waybar::modules::Clock::update() -> void {
       // std::vformat doesn't support named arguments.
       m_tlpText_ =
           std::regex_replace(m_tlpFmt_, std::regex("\\{" + kTZPlaceholder + "\\}"), tzText_);
-      m_tlpText_ =
-          std::regex_replace(m_tlpText_, std::regex("\\{" + kCldPlaceholder + "\\}"), cldText_);
+      m_tlpText_ = std::regex_replace(
+          m_tlpText_, std::regex("\\{" + kCldPlaceholder + "\\}"),
+          fmt_lib::vformat(m_locale_, cldText_, fmt_lib::make_format_args(shiftedNow)));
       m_tlpText_ =
           std::regex_replace(m_tlpText_, std::regex("\\{" + kOrdPlaceholder + "\\}"), ordText_);
     } else {
       m_tlpText_ = m_tlpFmt_;
     }
 
-    m_tlpText_ = fmt_lib::vformat(m_locale_, m_tlpText_, fmt_lib::make_format_args(shiftedNow));
+    m_tlpText_ = fmt_lib::vformat(m_locale_, m_tlpText_, fmt_lib::make_format_args(now));
     m_tooltip_->set_markup(m_tlpText_);
     label_.trigger_tooltip_query();
   }
@@ -197,8 +198,8 @@ const unsigned cldRowsInMonth(const year_month& ym, const weekday& firstdow) {
   return 2u + ceil<weeks>((weekday{ym / 1} - firstdow) + ((ym / last).day() - day{0})).count();
 }
 
-auto cldGetWeekForLine(const year_month& ym, const weekday& firstdow, const unsigned line)
-    -> const year_month_weekday {
+auto cldGetWeekForLine(const year_month& ym, const weekday& firstdow,
+                       const unsigned line) -> const year_month_weekday {
   unsigned index{line - 2};
   if (weekday{ym / 1} == firstdow) ++index;
   return ym / firstdow[index];
